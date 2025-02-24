@@ -1,0 +1,18 @@
+{
+  "_checkout": null,
+  "_output_dir": "/Users/mnakamura/Desktop/xfer_machine/Desktop/TDK",
+  "_repo_dir": "/Users/mnakamura/.cookiecutters/cookiecutter-nanosystemslab",
+  "_template": "gh:nanosystemslab/cookiecutter-nanosystemslab",
+  "author": "Kailer Okura",
+  "copyright_year": "2025",
+  "development_status": "Development Status :: 4 - Beta",
+  "email": "kailerokura@gmail.com",
+  "friendly_name": "Piezo_Load_Voltage_Processing",
+  "github_user": "kailer-oko",
+  "license": "GPL-3.0",
+  "package_name": "Piezo_Load_Voltage_Processing",
+  "project_name": "Piezo_Load_Voltage_Processing",
+  "project_version": "0.0.0",
+  "python_version_max": "4.0",
+  "python_version_min": "3.10"
+}

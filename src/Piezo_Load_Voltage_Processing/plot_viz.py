@@ -1,5 +1,8 @@
-#! /usr/bin/env python3
-
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import scipy
 import argparse
 import glob
 import logging
@@ -8,43 +11,14 @@ import pathlib
 import re
 import sys
 import types
-import csv
 
-#import dateutil.parser as dup
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import pandas.plotting
-import seaborn as sns
-from scipy.integrate import trapz
-from pathlib import Path
+try:
+    from kneed import KneeLocator
+    print("KneeLocator is installed.")
+except ImportError:
+    print("KneeLocator is not installed, install it using 'pip install kneed'")
+for line in lines:
 
-
-#from kneed import KneeLocator
-
-__version__ = "0.0.1"
-
-"""
-for gear_dir in data/gear-*; do python3 src/plot_viz.py -i "$gear_dir"/*; done
-
-"""
-
-def load_file_dmm(rn, rate):
-    full_pattern = f"data/rate_test/dmm/*-{rate}-{rn}.txt"
-    filepaths = glob.glob(full_pattern, recursive=True)
-    if not filepaths:
-        print(f"No file found for pattern {full_pattern}")
-        return None  # or handle this case appropriately
-
-    filepath = filepaths[0]
-    times = []  # Ensure these are defined in this scope
-    dcvs = []
-
-    with open(filepath, 'r') as file:
-        lines = file.readlines()
-
-    for line in lines:
         if 'functions loading' in line:
             continue
         # Split the line into components based on spaces
@@ -66,8 +40,7 @@ def load_file_dmm(rn, rate):
     # Create a DataFrame
     df = pd.DataFrame({
         'time': times,
-        'dcv': dcvs
-    })
+        'dcv': dcvs})
     # Convert 'time' to timedelta
     df['time'] = pd.to_timedelta(df['time'])
 
@@ -321,24 +294,24 @@ def plot_data_multi_trace(param_y="T", param_x="T", data_paths=None):
     hwratio = 4./3
     fig = plt.figure(figsize=(figsize * hwratio, figsize), dpi=figdpi)
     ax = fig.add_subplot(111)
-    colors = {
-        15: 'red',
-        30: 'blue',
-        45: 'green',
-        60: 'orange',
-        75: 'purple',
-        90: 'cyan',
-        105: 'magenta',
-        120: 'yellow' }
-    rates_lab = {
-        15: '15 mm/min',
-        30: '30 mm/min',
-        45: '45 mm/min',
-        60: '60 mm/min',
-        75: '75 mm/min',
-        90: '90 mm/min',
-        105: '105 mm/min',
-        120: '120 mm/min' }
+   # colors = {
+   #     15: 'red',
+   #     30: 'blue',
+   #     45: 'green',
+   #     60: 'orange',
+   #     75: 'purple',
+   #     90: 'cyan',
+   #     105: 'magenta',
+   #     120: 'yellow' }
+   # rates_lab = {
+   #     15: '15 mm/min',
+   #     30: '30 mm/min',
+   #     45: '45 mm/min',
+   #     60: '60 mm/min',
+   #     75: '75 mm/min',
+   #     90: '90 mm/min',
+   #     105: '105 mm/min',
+   #     120: '120 mm/min' }
     #colors = {
     #    25: 'red',
     #    50: 'blue',
@@ -406,6 +379,7 @@ def plot_force_vs_displacement(param_y="force", param_x="dcv", data_paths=None):
     df_shi = load_file_TT(glob.glob(data_paths[0])[0])
     test_run_num = df_shi.meta.test_run
     test_rate = df_shi.meta.rate
+
     df_dmm = load_file_dmm(test_run_num, test_rate)
 
     if 'time' in df_shi and 'time' in df_dmm:
@@ -525,10 +499,10 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
     hwratio = 4./3
     fig = plt.figure(figsize=(figsize * hwratio, figsize), dpi=figdpi)
     ax1 = fig.add_subplot(111)
-    colors = {
-        'A': 'red',
-        'B': 'blue',
-        'C': 'green' }
+    #colors = {
+    #    'A': 'red',
+    #    'B': 'blue',
+    #    'C': 'green' }
     #colors = {
     #    15: 'red',
     #    30: 'blue',
@@ -547,19 +521,19 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
     #    90: '90 mm/min',
     #    105: '105 mm/min',
     #    120: '120 mm/min' }
-    #colors = {
-    #    25: 'red',
-    #    50: 'blue',
-    #    75: 'green',
-    #    100: 'orange',
-    #    125: 'purple',
-    #    150: 'cyan',
-    #    175: 'magenta',
-    #    200: 'yellow',
-    #    225: 'teal',  
-    #    250: 'violet',
-    #    275: 'lime',  
-    #    300: 'maroon'}
+    colors = {
+        25: 'red',
+        50: 'blue',
+        75: 'green',
+        100: 'orange',
+        125: 'purple',
+        150: 'cyan',
+        175: 'magenta',
+        200: 'yellow',
+        225: 'teal',  
+        250: 'violet',
+        275: 'lime',  
+        300: 'maroon'}
 
     #rates_lab = {
     #    25:  '25 N',
@@ -587,9 +561,9 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
             test_rate = int(test_rate)
             test_sensor = df_shi.meta.sensor
 
-            df_dmm = load_file_dmm(test_run_num, test_rate)
+            df_dmm = load_file_dmm(data_path, test_run_num, test_rate)
             print(df_dmm)
-
+            print(df_shi)
             if 'time' in df_shi and 'time' in df_dmm:
             
                 # Find significant changes
@@ -613,16 +587,16 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
 
                 # Step 2: Truncate the DataFrame at this index
                 df_combined = df_combined.loc[:max_force_index]
-                #label = rates_lab[test_rate] if test_rate not in used_labels else ""
+                label = rates_lab[test_rate] if test_rate not in used_labels else ""
                 label = f"Sensor {test_sensor}"
 
-                ax1.plot(df_combined['force'], np.abs(df_combined['dcv']), label=label, color=colors[test_sensor])
-                ax1.scatter(df_combined['force'][-1], np.abs(df_combined['dcv'][-1]), color=colors[test_sensor])
+                ax1.plot(df_combined['force'], np.abs(df_combined['dcv']),  label=label, color=colors[test_sensor])
+                ax1.scatter(df_combined['force'][-1], np.abs(df_combined['dcv'][-1]))  , color=colors[test_sensor])
                 if test_rate not in used_labels:
                     used_labels.add(test_rate)
 
-    #ax1.legend(frameon=True)
-    ax1.legend(loc='upper left', ncol=2, frameon=True)
+    ax1.legend(frameon=True)
+    ax1.legend(loc='bottom right', ncol=2, frameon=True)
 
     fig.tight_layout()  # to make sure that the labels do not overlap
     # Save the plot
@@ -673,14 +647,14 @@ def main():
 
     #data_paths=cmd_args['input']
     #load_file_TT(glob.glob(data_paths[0])[0])
-    plot_force_vs_displacement(param_y="force", param_x="dcv",data_paths=cmd_args['input'])
+    #plot_force_vs_displacement(param_y="force", param_x="dcv",data_paths=cmd_args['input'])
     sorted_files = sorted(cmd_args['input'], key=extract_load)
     sorted_files = sorted(cmd_args['input'], key=extract_rate)
-    #plot_force_vs_dcv_multi(param_y="force", param_x="dcv",data_paths=sorted_files)
+    plot_force_vs_dcv_multi(param_y="force", param_x="dcv",data_paths=sorted_files)
     #plot_data_single_trace(param_y="force", param_x="time", data_paths=cmd_args['input'])
     #plot_data_multi_trace(param_y="force", param_x="stroke", data_paths=sorted_files)
     #plot_data_multi_trace(param_y="force", param_x="time", data_paths=sorted_files)
-    plot_force_vs_dcv()
+
 
 if "__main__" == __name__:
     try:

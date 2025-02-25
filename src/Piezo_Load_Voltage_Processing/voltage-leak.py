@@ -1,3 +1,4 @@
+
 #! /usr/bin/env python3
 
 import argparse
@@ -31,7 +32,7 @@ for gear_dir in data/gear-*; do python3 src/plot_viz.py -i "$gear_dir"/*; done
 """
 
 def load_file_dmm(rn, rate):
-    full_pattern = f"data/rate_test/dmm/*-{rate}-{rn}.txt"
+    full_pattern = f"data/voltage-leak/Bare/*-{rate}-*{rn}.txt"
     filepaths = glob.glob(full_pattern, recursive=True)
     if not filepaths:
         print(f"No file found for pattern {full_pattern}")
@@ -73,7 +74,9 @@ def load_file_dmm(rn, rate):
 
     # Convert 'dcv' to float
     df['dcv'] = pd.to_numeric(df['dcv'], errors='coerce')
+    print(df)
     return df
+sys.exit()
 
 def load_file_TT(filepath):
     log = logging.getLogger(__name__)
@@ -589,7 +592,7 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
 
             df_dmm = load_file_dmm(test_run_num, test_rate)
             print(df_dmm)
-
+            print(df_shi)
             if 'time' in df_shi and 'time' in df_dmm:
             
                 # Find significant changes
@@ -670,17 +673,19 @@ def main():
     #  plt.style.use('seaborn-whitegrid')
     #  plt.style.use('seaborn-darkgrid')
     #  plt.style.use('whitegrid') #not appl0.15cable?
+    
+    load_file_dmm(60,1)
 
     #data_paths=cmd_args['input']
     #load_file_TT(glob.glob(data_paths[0])[0])
-    plot_force_vs_displacement(param_y="force", param_x="dcv",data_paths=cmd_args['input'])
+    #plot_force_vs_displacement(param_y="force", param_x="dcv",data_paths=cmd_args['input'])
     sorted_files = sorted(cmd_args['input'], key=extract_load)
     sorted_files = sorted(cmd_args['input'], key=extract_rate)
-    #plot_force_vs_dcv_multi(param_y="force", param_x="dcv",data_paths=sorted_files)
+    plot_force_vs_dcv_multi(param_y="force", param_x="dcv",data_paths=sorted_files)
     #plot_data_single_trace(param_y="force", param_x="time", data_paths=cmd_args['input'])
     #plot_data_multi_trace(param_y="force", param_x="stroke", data_paths=sorted_files)
-    #plot_data_multi_trace(param_y="force", param_x="time", data_paths=sorted_files)
-    plot_force_vs_dcv()
+    plot_data_multi_trace(param_y="force", param_x="time", data_paths=sorted_files)
+
 
 if "__main__" == __name__:
     try:

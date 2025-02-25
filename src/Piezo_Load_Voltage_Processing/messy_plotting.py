@@ -31,7 +31,7 @@ for gear_dir in data/gear-*; do python3 src/plot_viz.py -i "$gear_dir"/*; done
 """
 
 def load_file_dmm(rn, rate):
-    full_pattern = f"data/rate_test/dmm/*-{rate}-{rn}.txt"
+    full_pattern = f"data/A-divider/dmm/*-{rate}-{rn}.txt"
     filepaths = glob.glob(full_pattern, recursive=True)
     if not filepaths:
         print(f"No file found for pattern {full_pattern}")
@@ -581,6 +581,7 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
         ax1.set_xlabel('Force (N)')
         ax1.set_ylabel('DCV (V)')  # we already handled the x-label with ax1
         for data_path in data_paths: 
+            print(data_path)
             df_shi = load_file_TT(data_path)
             test_run_num = df_shi.meta.test_run
             test_rate = df_shi.meta.rate
@@ -589,6 +590,7 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
 
             df_dmm = load_file_dmm(test_run_num, test_rate)
             print(df_dmm)
+            sys.exit()
 
             if 'time' in df_shi and 'time' in df_dmm:
             
@@ -673,14 +675,14 @@ def main():
 
     #data_paths=cmd_args['input']
     #load_file_TT(glob.glob(data_paths[0])[0])
-    plot_force_vs_displacement(param_y="force", param_x="dcv",data_paths=cmd_args['input'])
+    #plot_force_vs_displacement(param_y="force", param_x="dcv",data_paths=cmd_args['input'])
     sorted_files = sorted(cmd_args['input'], key=extract_load)
     sorted_files = sorted(cmd_args['input'], key=extract_rate)
-    #plot_force_vs_dcv_multi(param_y="force", param_x="dcv",data_paths=sorted_files)
+    plot_force_vs_dcv_multi(param_y="force", param_x="dcv",data_paths=sorted_files)
     #plot_data_single_trace(param_y="force", param_x="time", data_paths=cmd_args['input'])
     #plot_data_multi_trace(param_y="force", param_x="stroke", data_paths=sorted_files)
-    #plot_data_multi_trace(param_y="force", param_x="time", data_paths=sorted_files)
-    plot_force_vs_dcv()
+    plot_data_multi_trace(param_y="force", param_x="time", data_paths=sorted_files)
+
 
 if "__main__" == __name__:
     try:

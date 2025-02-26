@@ -20,8 +20,8 @@
 ### Collect Repository
 To clone the repository: 
 ```sh
-git clone https://github.com/nanosystemslab/Small_Scale_Contact.git
-cd Small_Scale_Contact
+git clone https://github.com/nanosystemslab/Piezo_Load_Voltage_Processing.git
+cd Piezo_Load_Voltage_Processing 
 ```
 
 ### Using pip

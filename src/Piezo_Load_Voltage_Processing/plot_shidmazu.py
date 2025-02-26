@@ -207,13 +207,48 @@ def load_file_TT(filepath):
 
 
 def load_estimated_comsol_simulation(filepath):
-    base_file_path = Path(filepath).parent.parent.resolve()
+    base_file_path = Path(filepath).parent.resolve()
     file_path = base_file_path / "COMSOL--Force-Displacement.csv"
     df = pd.read_csv(file_path)
-    print(df)
     force = df["Force"]
     disp = df["Displacement"]
     return force, disp
+
+def average_percent_difference(sim_disp, sim_force, df_stroke_mean, df_force_mean):
+    """
+    Compute the average percentage difference between simulation and experimental data.
+    
+    The function interpolates the simulation displacement and force onto the experimental
+    force values and then computes the average percentage difference relative to the experimental
+    stroke and force values.
+    
+    Parameters:
+        sim_disp (array-like): Simulated displacement (or stroke) values.
+        sim_force (array-like): Simulated force values (independent variable for simulation).
+        df_stroke_mean (array-like): Experimental stroke values.
+        df_force_mean (array-like): Experimental force values (independent variable for experiment).
+        
+    Returns:
+        avg_stroke_diff (float): Average percentage difference for displacement/stroke.
+        avg_force_diff (float): Average percentage difference for force.
+    """
+    # Convert inputs to numpy arrays
+    sim_disp = np.array(sim_disp)
+    sim_force = np.array(sim_force)
+    df_stroke_mean = np.array(df_stroke_mean)
+    df_force_mean = np.array(df_force_mean)
+    
+    # Interpolate simulation displacement to experimental force values
+    sim_disp_interp = np.interp(df_force_mean, sim_force, sim_disp)
+    stroke_pct_diff = np.abs(sim_disp_interp - df_stroke_mean) / np.abs(df_stroke_mean) * 100
+    avg_stroke_diff = np.mean(stroke_pct_diff)
+    
+    # Interpolate simulation force to experimental force values
+    sim_force_interp = np.interp(df_force_mean, sim_force, sim_force)
+    force_pct_diff = np.abs(sim_force_interp - df_force_mean) / np.abs(df_force_mean) * 100
+    avg_force_diff = np.mean(force_pct_diff)
+    
+    return avg_stroke_diff, avg_force_diff
 
 
 def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
@@ -275,7 +310,11 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
 
         # Plot the experimental average with x = stroke and y = force
         ax1.plot(sim_disp, sim_force,
-                 label="COMSOL Simulation", color="red", marker="o", markevery=5)
+                 label="COMSOL Simulation", color="red", marker="o", markevery=2)
+
+        avg_stroke, avg_force = average_percent_difference(sim_disp, sim_force, df_stroke_mean, df_force_mean)
+
+        ax1.plot([], [], ' ', label=f"Avg Diff: {avg_force:.2f}%")
 
         ax1.legend(loc='lower right', ncol=1, frameon=True)
 

@@ -46,6 +46,7 @@ This will activate a new shell where all the dependencies specified in your `pyp
 ## Usage
 1. **Prepare Input Data**: Ensure your input data files are correctly formatted and placed in the `DATA` directory.
 2. **Run Simulations**: Use the scripts in the `src` directory to generate surface data and plot models.
+
 To run Force vs Voltage
 ```sh
  python3 src/Piezo_Load_Voltage_Processing/plot_dmm_with_shidmazu.py -i DATA/C/shimadzu/60mm_min_250N--C-*csv

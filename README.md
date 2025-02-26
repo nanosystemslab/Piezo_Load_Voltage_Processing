@@ -17,16 +17,40 @@
 - TODO
 
 ## Installation
-
-You can install _Piezo_Load_Voltage_Processing_ via [pip] from [PyPI]:
-
-```console
-$ pip install Piezo_Load_Voltage_Processing
+### Collect Repository
+To clone the repository: 
+```sh
+git clone https://github.com/nanosystemslab/Small_Scale_Contact.git
+cd Small_Scale_Contact
 ```
 
-## Usage
+### Using pip
+install dependencies using pip:
+```sh
+pip install .
+```
 
-Please see the [Command-line Reference] for details.
+### Using Poetry
+Alternatively, if you prefer using Poetry for dependency management, you can run:
+```sh
+poetry install
+```
+
+## Using a Poetry Shell
+To start a new shell session with your project's dependencies, use the following command:
+```sh
+poetry shell
+```
+This will activate a new shell where all the dependencies specified in your `pyproject.toml` are available.
+
+## Usage
+1. **Prepare Input Data**: Ensure your input data files are correctly formatted and placed in the `DATA` directory.
+2. **Run Simulations**: Use the scripts in the `src` directory to generate surface data and plot models.
+```sh
+ python3 src/Piezo_Load_Voltage_Processing/plot_shidmazu.py -i DATA/C/shimadzu/60mm_min_250N--C-*csv
+ python3 src/Piezo_Load_Voltage_Processing/plot_shidmazu.py -i DATA/C-100N/60mm_min_100N--C-*csv
+```
+3. **View Results**: Access the output files in the `OUT` directory and analyze the generated data.
 
 ## Contributing
 

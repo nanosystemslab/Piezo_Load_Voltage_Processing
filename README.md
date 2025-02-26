@@ -1,21 +1,10 @@
 # Piezo_Load_Voltage_Processing
-
-[![PyPI](https://img.shields.io/pypi/v/Piezo_Load_Voltage_Processing.svg)][pypi status]
-[![Status](https://img.shields.io/pypi/status/Piezo_Load_Voltage_Processing.svg)][pypi status]
-[![Python Version](https://img.shields.io/pypi/pyversions/Piezo_Load_Voltage_Processing)][pypi status]
-[![License](https://img.shields.io/pypi/l/Piezo_Load_Voltage_Processing)][license]
-
-[![Read the documentation at https://Piezo_Load_Voltage_Processing.readthedocs.io/](https://img.shields.io/readthedocs/Piezo_Load_Voltage_Processing/latest.svg?label=Read%20the%20Docs)][read the docs]
-[![Tests](https://github.com/kailer-oko/Piezo_Load_Voltage_Processing/workflows/Tests/badge.svg)][tests]
-[![Codecov](https://codecov.io/gh/kailer-oko/Piezo_Load_Voltage_Processing/branch/main/graph/badge.svg)][codecov]
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Python Versions](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-blue)](#)
 
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)][pre-commit]
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)][black]
 
-[pypi status]: https://pypi.org/project/Piezo_Load_Voltage_Processing/
-[read the docs]: https://Piezo_Load_Voltage_Processing.readthedocs.io/
-[tests]: https://github.com/kailer-oko/Piezo_Load_Voltage_Processing/actions?workflow=Tests
-[codecov]: https://app.codecov.io/gh/kailer-oko/Piezo_Load_Voltage_Processing
 [pre-commit]: https://github.com/pre-commit/pre-commit
 [black]: https://github.com/psf/black
 

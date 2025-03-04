@@ -323,9 +323,6 @@ def generate_pwl_file(param_y="force", param_x="dcv", data_paths=None):
         # Compute charge from force
         df['Charge (C)'] = df['Force Mean (N)'] * slope  
 
-        # Compute current using finite difference method (dQ/dt)
-        #df['Current (A)'] = 1E6 * np.gradient(df['Charge (C)'], df['Time Mean (s)']*0.5)
-
         # Set a constant time step of 0.02
         fixed_time_step = 0.00225  
         
@@ -340,14 +337,7 @@ def generate_pwl_file(param_y="force", param_x="dcv", data_paths=None):
 
         print(df)
 
-        ltspice_file_path = "./LTSpice_pzt_model/linear_pwl.txt"
-        
-        # # Save time and current in PWL format
-        # with open(ltspice_file_path, "w") as f:
-        #     for t, I in zip(df["Time Mean (s)"], df["Current (A)"]):
-        #         f.write(f"{t:.6f} {I:.6f}\n")  # 6 decimal places for precision
-        # 
-        # print(f"LTSpice-compatible file saved at: {ltspice_file_path}")
+        ltspice_file_path = "./LTSpice_pzt_model/Input_PWL.txt"
 
         # Save the uniform time and current in PWL format
         with open(ltspice_file_path, "w") as f:
@@ -355,10 +345,6 @@ def generate_pwl_file(param_y="force", param_x="dcv", data_paths=None):
                 f.write(f"{t:.6f} {I:.6f}\n")  # 6 decimal places for precision
         
         print(f"LTSpice-compatible file saved at: {ltspice_file_path}")
-
-
-
-
 
 
 def main():

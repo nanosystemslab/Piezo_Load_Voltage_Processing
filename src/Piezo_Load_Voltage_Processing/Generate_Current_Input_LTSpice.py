@@ -16,7 +16,6 @@ import numpy as np
 import pandas as pd
 import pandas.plotting
 import seaborn as sns
-from scipy.integrate import trapz
 
 
 __version__ = "0.0.1"
@@ -251,7 +250,7 @@ def average_percent_difference(sim_disp, sim_force, df_stroke_mean, df_force_mea
     return avg_stroke_diff, avg_force_diff
 
 
-def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
+def generate_pwl_file(param_y="force", param_x="dcv", data_paths=None):
     log = logging.getLogger(__name__)
     log.debug("in")
     print(data_paths)
@@ -277,8 +276,12 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
             test_sensor = df_shi.meta.sensor
             test_file_path = df_shi.meta.filepath
 
+            increase_points = find_first_contiguous_increase_points(df_shi, 'force', 0.1)
+            df_shi = df_shi.loc[increase_points]
+            df_shi['time'] = df_shi['time'] - df_shi['time'].iloc[0]
+
             # Append processed data to the list
-            data_list.append(df_shi[['force', 'stroke']])
+            data_list.append(df_shi[['force', 'stroke', 'time']])
      
         # Convert the list into a single DataFrame
         df_all = pd.concat(data_list, axis=1)
@@ -287,59 +290,75 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
         # Filter columns for force and stroke
         df_force = df_all.filter(like="force")   # Columns containing "force"
         df_stroke = df_all.filter(like="stroke")   # Columns containing "stroke"
+        df_time = df_all.filter(like="time")   # Columns containing "time"
         
         # Compute statistics along rows (or adjust axis as needed)
         df_force_mean = df_force.mean(axis=1)
         df_force_std  = df_force.std(axis=1)       # Compute standard deviation for force
         avg_force_std = df_force_std.mean()
         
+        # Compute mean stoke
         df_stroke_mean = df_stroke.mean(axis=1)
         
-        # Plot the experimental average with x = stroke and y = force
-        ax1.plot(df_stroke_mean, df_force_mean,
-                 label="Experimental Average", color="blue", marker="D", markevery=5)
+        # Compute mean time
+        df_time_mean = df_time.mean(axis=1)
 
-
-        # # 1. Fit a 2nd-order polynomial to the data
-        # coefficients = np.polyfit(df_stroke_mean, df_force_mean, 2)
-        # 
-        # # 2. Create a polynomial function from these coefficients
-        # poly_func = np.poly1d(coefficients)
-        # 
-        # # 3. Evaluate the polynomial for a range of x-values (for plotting)
-        # x_fit = np.linspace(df_stroke_mean.min(), df_stroke_mean.max(), 100)
-        # y_fit = poly_func(x_fit)
-        # 
-        # # 4. Print the polynomial coefficients
-        # # poly1d format: a*x^2 + b*x + c
-        # print("Fitted quadratic polynomial:")
-        # print(poly_func)
-
-        # ax1.plot(x_fit, y_fit, label=f"Quadratic Fit {poly_func}", color="green", linewidth=2)
+        df = pd.DataFrame({
+            'Force Mean (N)': df_force_mean - min(df_force_mean),
+            'Force Std (N)': df_force_std,
+            'Stroke Mean': df_stroke_mean,
+            'Time Mean (s)': df_time_mean.dt.total_seconds()
+        })
+        print(len(df))
+        print(df)
         
-        # Fill between the average ± standard deviation for force
-        ax1.fill_between(df_stroke_mean,
-                         df_force_mean - df_force_std,
-                         df_force_mean + df_force_std,
-                         color='blue', alpha=0.3,
-                         label=f"Standard Deviation {avg_force_std:.2f}")
-        # Load COMSOL Simulation Data
-        sim_force, sim_disp = load_estimated_comsol_simulation(test_file_path)
+        # Define the slope for charge conversion
+        # Force (N)
+        force = np.array([0, 100, 200, 300, 400, 500])  
+        # Electric displacement (C)
+        electric_displacement = np.array([0, 2.47E-10, 4.95E-10, 7.42E-10, 9.89E-10, 1.24E-09])  
 
-        # Plot the experimental average with x = stroke and y = force
-        ax1.plot(sim_disp, sim_force,
-                 label="COMSOL Simulation", color="red", marker="o", markevery=2)
+        slope, intercept = np.polyfit(force, electric_displacement, 1)
+        
+        # Compute charge from force
+        df['Charge (C)'] = df['Force Mean (N)'] * slope  
 
-        avg_stroke, avg_force = average_percent_difference(sim_disp, sim_force, df_stroke_mean, df_force_mean)
+        # Compute current using finite difference method (dQ/dt)
+        #df['Current (A)'] = 1E6 * np.gradient(df['Charge (C)'], df['Time Mean (s)']*0.5)
 
-        ax1.plot([], [], ' ', label=f"Avg Diff: {avg_force:.2f}%")
+        # Set a constant time step of 0.02
+        fixed_time_step = 0.00225  
+        
+        # Create an array of constant time steps with the same length as np.diff()
+        constant_time_steps = np.full(len(df) - 1, fixed_time_step) 
 
-        ax1.legend(loc='lower right', ncol=1, frameon=True)
+        # Generate a new uniform time array using the constant time step
+        uniform_time_array = np.arange(0, fixed_time_step * len(df), fixed_time_step)[:len(df)]
 
-        fig.tight_layout()  # to make sure that the labels do not overlap
-        # Save the plot
-        plot_filename = f"out/plot_force_vs_displacement_multi.png"
-        plt.savefig(plot_filename, format='png')
+        # Compute current using forward difference (dQ/dt)
+        df['Current (A)'] = np.append(0, 1E6 * np.diff(df['Charge (C)']) / constant_time_steps)
+
+        print(df)
+
+        ltspice_file_path = "./LTSpice_pzt_model/linear_pwl.txt"
+        
+        # # Save time and current in PWL format
+        # with open(ltspice_file_path, "w") as f:
+        #     for t, I in zip(df["Time Mean (s)"], df["Current (A)"]):
+        #         f.write(f"{t:.6f} {I:.6f}\n")  # 6 decimal places for precision
+        # 
+        # print(f"LTSpice-compatible file saved at: {ltspice_file_path}")
+
+        # Save the uniform time and current in PWL format
+        with open(ltspice_file_path, "w") as f:
+            for t, I in zip(uniform_time_array, df["Current (A)"]):
+                f.write(f"{t:.6f} {I:.6f}\n")  # 6 decimal places for precision
+        
+        print(f"LTSpice-compatible file saved at: {ltspice_file_path}")
+
+
+
+
 
 
 def main():
@@ -348,7 +367,7 @@ def main():
 
     sorted_files = sorted(cmd_args['input'], key=extract_load)
     sorted_files = sorted(cmd_args['input'], key=extract_rate)
-    plot_force_vs_dcv_multi(param_y="force", param_x="dcv",data_paths=sorted_files)
+    generate_pwl_file(param_y="force", param_x="dcv",data_paths=sorted_files)
 
 if "__main__" == __name__:
     try:

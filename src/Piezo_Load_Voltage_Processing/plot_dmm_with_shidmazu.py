@@ -16,7 +16,6 @@ import numpy as np
 import pandas as pd
 import pandas.plotting
 import seaborn as sns
-from scipy.integrate import trapz
 
 
 __version__ = "0.0.1"
@@ -207,18 +206,22 @@ def load_file_TT(filepath):
 
 def load_estimated_electrical_simulation(filepath, x):
     base_file_path = Path(filepath).parent.parent.resolve()
-    file_path = base_file_path / "Estimated_Electrical_Simulation.csv"
-    df = pd.read_csv(file_path)
-    
-    # Compute polynomial coefficients and create a polynomial function:
-    degree = 3
-    coeffs = np.polyfit(df["x"], df[" y"], degree)
-    poly_fit = np.poly1d(coeffs)
-    
-    # Generate a smooth curve for the polynomial fit:
-    force_fit = x
-    dcv_fit = poly_fit(force_fit)
-    return force_fit, dcv_fit
+    #file_path = base_file_path / "Estimated_Electrical_Simulation.csv"
+    # df = pd.read_csv(file_path)
+    # 
+    # # Compute polynomial coefficients and create a polynomial function:
+    # degree = 3
+    # coeffs = np.polyfit(df["x"], df[" y"], degree)
+    # poly_fit = np.poly1d(coeffs)
+    # 
+    # # Generate a smooth curve for the polynomial fit:
+    # force_fit = x
+    # dcv_fit = poly_fit(force_fit)
+
+    file_path = base_file_path / "single_pzt_shimadzu_test_model.txt"
+    df = pd.read_csv(file_path, sep="\t")
+
+    return df 
 
 
 def average_percentage_difference(dcv_fit, df_dcv_mean):
@@ -287,9 +290,11 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
                 # Step 2: Truncate the DataFrame at this index
                 df_combined = df_combined.loc[:truncate_index]
                 df_combined["dcv"] = np.abs(df_combined["dcv"])
+                df_combined["time"] = df_combined.index
 
                 # Append processed data to the list
-                data_list.append(df_combined[['force', 'dcv']])
+                data_list.append(df_combined[['force', 'dcv', 'time']])
+
      
         dataset_lengths = [len(df) for df in data_list]
         # Convert the list into a single DataFrame
@@ -300,10 +305,15 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
         # Compute statistics
         df_force = df_all.filter(like="force")  # Select all columns containing "force"
         df_dcv = df_all.filter(like="dcv")      # Select all columns containing "dcv"
+        df_time = df_all.filter(like="time")   # Columns containing "time"
         
         df_force_mean = df_force.mean(axis=1)
         df_dcv_mean = df_dcv.mean(axis=1)
         df_dcv_std = df_dcv.std(axis=1)
+
+        # Compute mean time
+        df_time_mean = df_time.mean(axis=1)
+        df_time_mean = df_time_mean.dt.total_seconds()
         
         # Ensure consistent indices
         df_force_mean, df_dcv_mean = df_force_mean.align(df_dcv_mean, join='inner')
@@ -317,18 +327,55 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
         df_dcv_std = df_dcv_std.iloc[sorted_indices]
         avg_dcv_std = df_dcv_std.mean()
 
+
         # Plot
-        ax1.plot(df_force_mean, df_dcv_mean, label="Experimental Average", color="blue", marker="D", markevery=5)
+        ax1.plot( df_force_mean,  df_dcv_mean, label="Experimental Average", color="blue", marker="D", markevery=5)
         ax1.fill_between(df_force_mean, df_dcv_mean - df_dcv_std, df_dcv_mean + df_dcv_std,
                  color='blue', alpha=0.3, label=f"Standard Deviation {avg_dcv_std:.2f}")
 
         # Estimated Values From Electrical Simulation 
-        force_fit, dcv_fit = load_estimated_electrical_simulation(test_file_path, df_force_mean)
-        avg_diff = average_percentage_difference(dcv_fit, df_dcv_mean)
+        df_elec_sim = load_estimated_electrical_simulation(test_file_path, df_force_mean)
+        
+
+        df_force = pd.DataFrame({
+            'Force Mean (N)': df_force_mean,
+            'Time Mean (s)': df_time_mean,
+            'EXP DCV': df_dcv_mean
+        }).reset_index(drop=True)
+
+    
+        # Merge on "Time Mean (s)"
+        #df_combined = pd.merge(df_elec_sim, df_force, left_on="time", right_on="Time Mean (s)", how="inner")
+        df_combined = pd.merge_asof(df_elec_sim, df_force, left_on="time", right_on="Time Mean (s)")
 
 
-        ax1.plot(force_fit, dcv_fit, label="Circuit Simulation", color="red", marker="o", markevery=5)
-        ax1.plot([], [], ' ', label=f"Avg Diff: {avg_diff:.2f}%")
+        # Find the first index where Force reaches its max value
+        max_force_value = df_combined["Force Mean (N)"].max()
+        max_force_index = df_combined[df_combined["Force Mean (N)"] == max_force_value].index[0]
+        
+        # Keep only rows up to (and including) the first max force occurrence
+        df_combined = df_combined.loc[:max_force_index].reset_index(drop=True)
+        
+
+        df_combined = df_combined.drop_duplicates(subset=["Force Mean (N)"], keep="first").reset_index(drop=True)
+
+        df_combined["% Difference"] = np.abs(df_combined["V(opamp_out)"] - df_combined["EXP DCV"]) / df_combined["EXP DCV"] * 100
+
+
+
+        #ax1.plot(df_combined["Force Mean (N)"], df_combined["V(opamp_out)"], label="Circuit Simulation", color="red", marker="o", markevery=50)
+        ax1.plot(df_combined["Force Mean (N)"], df_combined["V(opamp_out)"],
+                 label="Circuit Simulation", color="red",
+                 marker="o", markevery=5, linewidth=2)
+
+
+        ## Filter the DataFrame to keep only rows with Force Mean (N) <= 150
+        #print(df_combined)
+
+        #avg_diff = df_combined["% Difference"].mean
+        #print(avg_diff)
+
+        #ax1.plot([], [], ' ', label=f"Avg Diff: {avg_diff:.2f}%")
 
         ax1.set_xlim(0, 235)
         ax1.legend(loc='lower right', ncol=1, frameon=True)

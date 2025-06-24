@@ -24,7 +24,7 @@ numpy = "^2.2.3"
 seaborn = "^0.13.2"
 scipy = "^1.15.2"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 Pygments = ">=2.10.0"
 bandit = ">=1.7.4"
 black = ">=21.10b0"

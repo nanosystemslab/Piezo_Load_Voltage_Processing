@@ -8,3 +8,6 @@
 /docs/_build/
 /src/*.egg-info/
 __pycache__/
+./DATA/
+./LTSpice_pzt_model
+./LTSpice_pzt_model.zip

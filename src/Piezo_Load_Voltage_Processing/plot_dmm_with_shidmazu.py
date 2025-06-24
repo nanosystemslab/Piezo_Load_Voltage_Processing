@@ -238,6 +238,75 @@ def average_percentage_difference(dcv_fit, df_dcv_mean):
     return avg_percent_diff
 
 
+def average_percent_difference(sim_disp, sim_force, df_stroke_mean, df_force_mean):
+    """
+    Compute the average percentage difference between simulation and experimental data.
+    
+    The function interpolates the simulation displacement and force onto the experimental
+    force values and then computes the average percentage difference relative to the experimental
+    stroke and force values.
+    
+    Parameters:
+        sim_disp (array-like): Simulated displacement (or stroke) values.
+        sim_force (array-like): Simulated force values (independent variable for simulation).
+        df_stroke_mean (array-like): Experimental stroke values.
+        df_force_mean (array-like): Experimental force values (independent variable for experiment).
+        
+    Returns:
+        avg_stroke_diff (float): Average percentage difference for displacement/stroke.
+        avg_force_diff (float): Average percentage difference for force.
+    """
+    # Convert inputs to numpy arrays
+    sim_disp = np.array(sim_disp)
+    sim_force = np.array(sim_force)
+    df_stroke_mean = np.array(df_stroke_mean)
+    df_force_mean = np.array(df_force_mean)
+    
+    # Interpolate simulation displacement to experimental force values
+    sim_disp_interp = np.interp(df_force_mean, sim_force, sim_disp)
+    stroke_pct_diff = np.abs(sim_disp_interp - df_stroke_mean) / np.abs(df_stroke_mean) * 100
+    avg_stroke_diff = np.mean(stroke_pct_diff)
+    
+    # Interpolate simulation force to experimental force values
+    sim_force_interp = np.interp(df_force_mean, sim_force, sim_force)
+    force_pct_diff = np.abs(sim_force_interp - df_force_mean) / np.abs(df_force_mean) * 100
+    avg_force_diff = np.mean(force_pct_diff)
+    
+    return avg_stroke_diff, avg_force_diff
+
+def rmse_calculation(sim_disp, sim_force, df_stroke_mean, df_force_mean):
+    """
+    Compute the Root Mean Square Error (RMSE) between simulation and experimental data.
+    
+    The function interpolates the simulation displacement and force onto the experimental
+    force values and then computes the RMSE for both stroke and force values.
+    
+    Parameters:
+        sim_disp (array-like): Simulated displacement (or stroke) values.
+        sim_force (array-like): Simulated force values (independent variable for simulation).
+        df_stroke_mean (array-like): Experimental stroke values.
+        df_force_mean (array-like): Experimental force values (independent variable for experiment).
+        
+    Returns:
+        stroke_rmse (float): RMSE for displacement/stroke.
+        force_rmse (float): RMSE for force.
+    """
+    # Convert inputs to numpy arrays
+    sim_disp = np.array(sim_disp)
+    sim_force = np.array(sim_force)
+    df_stroke_mean = np.array(df_stroke_mean)
+    df_force_mean = np.array(df_force_mean)
+    
+    # Interpolate simulation displacement to experimental force values
+    sim_disp_interp = np.interp(df_force_mean, sim_force, sim_disp)
+    stroke_rmse = np.sqrt(np.mean((sim_disp_interp - df_stroke_mean)**2))
+    
+    # Interpolate simulation force to experimental force values
+    sim_force_interp = np.interp(df_force_mean, sim_force, sim_force)
+    force_rmse = np.sqrt(np.mean((sim_force_interp - df_force_mean)**2))
+    
+    return stroke_rmse, force_rmse
+
 def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
     log = logging.getLogger(__name__)
     log.debug("in")
@@ -327,7 +396,6 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
         df_dcv_std = df_dcv_std.iloc[sorted_indices]
         avg_dcv_std = df_dcv_std.mean()
 
-
         # Plot
         ax1.plot( df_force_mean,  df_dcv_mean, label="Experimental Average", color="blue", marker="D", markevery=5)
         ax1.fill_between(df_force_mean, df_dcv_mean - df_dcv_std, df_dcv_mean + df_dcv_std,
@@ -336,18 +404,15 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
         # Estimated Values From Electrical Simulation 
         df_elec_sim = load_estimated_electrical_simulation(test_file_path, df_force_mean)
         
-
         df_force = pd.DataFrame({
             'Force Mean (N)': df_force_mean,
             'Time Mean (s)': df_time_mean,
             'EXP DCV': df_dcv_mean
         }).reset_index(drop=True)
 
-    
         # Merge on "Time Mean (s)"
         #df_combined = pd.merge(df_elec_sim, df_force, left_on="time", right_on="Time Mean (s)", how="inner")
         df_combined = pd.merge_asof(df_elec_sim, df_force, left_on="time", right_on="Time Mean (s)")
-
 
         # Find the first index where Force reaches its max value
         max_force_value = df_combined["Force Mean (N)"].max()
@@ -356,26 +421,41 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
         # Keep only rows up to (and including) the first max force occurrence
         df_combined = df_combined.loc[:max_force_index].reset_index(drop=True)
         
-
         df_combined = df_combined.drop_duplicates(subset=["Force Mean (N)"], keep="first").reset_index(drop=True)
 
         df_combined["% Difference"] = np.abs(df_combined["V(opamp_out)"] - df_combined["EXP DCV"]) / df_combined["EXP DCV"] * 100
 
-
-
-        #ax1.plot(df_combined["Force Mean (N)"], df_combined["V(opamp_out)"], label="Circuit Simulation", color="red", marker="o", markevery=50)
+        # Plot simulation data
         ax1.plot(df_combined["Force Mean (N)"], df_combined["V(opamp_out)"],
                  label="Circuit Simulation", color="red",
                  marker="o", markevery=5, linewidth=2)
 
+        # Calculate metrics using the functions
+        # For the functions, we need to match the parameter names:
+        # sim_disp -> V(opamp_out) (simulation voltage)
+        # sim_force -> Force Mean (N) (force values)
+        # df_stroke_mean -> EXP DCV (experimental voltage)
+        # df_force_mean -> Force Mean (N) (same force values)
+        
+        # Calculate average percentage difference
+        avg_voltage_diff, avg_force_diff = average_percent_difference(
+            sim_disp=df_combined["V(opamp_out)"],
+            sim_force=df_combined["Force Mean (N)"],
+            df_stroke_mean=df_combined["EXP DCV"],
+            df_force_mean=df_combined["Force Mean (N)"]
+        )
+        
+        # Calculate RMSE
+        voltage_rmse, force_rmse = rmse_calculation(
+            sim_disp=df_combined["V(opamp_out)"],
+            sim_force=df_combined["Force Mean (N)"],
+            df_stroke_mean=df_combined["EXP DCV"],
+            df_force_mean=df_combined["Force Mean (N)"]
+        )
 
-        ## Filter the DataFrame to keep only rows with Force Mean (N) <= 150
-        #print(df_combined)
-
-        #avg_diff = df_combined["% Difference"].mean
-        #print(avg_diff)
-
-        #ax1.plot([], [], ' ', label=f"Avg Diff: {avg_diff:.2f}%")
+        # Add metrics to legend as invisible plots
+        ax1.plot([], [], ' ', label=f"Avg Diff: {avg_voltage_diff:.2f}%")
+        ax1.plot([], [], ' ', label=f"RMSE: {voltage_rmse:.3f} V")
 
         ax1.set_xlim(0, 235)
         ax1.legend(loc='lower right', ncol=1, frameon=True)
@@ -384,7 +464,6 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
         # Save the plot
         plot_filename = f"out/plot_force_vs_voltage_multi.png"
         plt.savefig(plot_filename, format='png')
-
 
 def main():
     cmd_args = parse_command_line()

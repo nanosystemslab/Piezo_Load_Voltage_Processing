@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import pandas.plotting
 import seaborn as sns
-from scipy.integrate import trapz
+from scipy.integrate import trapezoid as trapz
 
 
 __version__ = "0.0.1"
@@ -250,6 +250,39 @@ def average_percent_difference(sim_disp, sim_force, df_stroke_mean, df_force_mea
     
     return avg_stroke_diff, avg_force_diff
 
+def rmse_calculation(sim_disp, sim_force, df_stroke_mean, df_force_mean):
+    """
+    Compute the Root Mean Square Error (RMSE) between simulation and experimental data.
+    
+    The function interpolates the simulation displacement and force onto the experimental
+    force values and then computes the RMSE for both stroke and force values.
+    
+    Parameters:
+        sim_disp (array-like): Simulated displacement (or stroke) values.
+        sim_force (array-like): Simulated force values (independent variable for simulation).
+        df_stroke_mean (array-like): Experimental stroke values.
+        df_force_mean (array-like): Experimental force values (independent variable for experiment).
+        
+    Returns:
+        stroke_rmse (float): RMSE for displacement/stroke.
+        force_rmse (float): RMSE for force.
+    """
+    # Convert inputs to numpy arrays
+    sim_disp = np.array(sim_disp)
+    sim_force = np.array(sim_force)
+    df_stroke_mean = np.array(df_stroke_mean)
+    df_force_mean = np.array(df_force_mean)
+    
+    # Interpolate simulation displacement to experimental force values
+    sim_disp_interp = np.interp(df_force_mean, sim_force, sim_disp)
+    stroke_rmse = np.sqrt(np.mean((sim_disp_interp - df_stroke_mean)**2))
+    
+    # Interpolate simulation force to experimental force values
+    sim_force_interp = np.interp(df_force_mean, sim_force, sim_force)
+    force_rmse = np.sqrt(np.mean((sim_force_interp - df_force_mean)**2))
+    
+    return stroke_rmse, force_rmse
+
 
 def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
     log = logging.getLogger(__name__)
@@ -332,9 +365,14 @@ def plot_force_vs_dcv_multi(param_y="force", param_x="dcv", data_paths=None):
 
         avg_stroke, avg_force = average_percent_difference(sim_disp, sim_force, df_stroke_mean, df_force_mean)
 
+        stroke_rmse, force_rmse = rmse_calculation(sim_disp, sim_force, df_stroke_mean, df_force_mean)
+
         ax1.plot([], [], ' ', label=f"Avg Diff: {avg_force:.2f}%")
 
-        ax1.legend(loc='lower right', ncol=1, frameon=True)
+        ax1.plot([], [], ' ', label=f"RMSE: {force_rmse:.2f} N")
+
+        #ax1.legend(loc='lower right', ncol=1, frameon=True)
+        ax1.legend(loc='upper left', ncol=1, frameon=True)
 
         fig.tight_layout()  # to make sure that the labels do not overlap
         # Save the plot

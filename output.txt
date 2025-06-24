@@ -1,0 +1,60 @@
+* bb6eae8 (HEAD -> main) Adding LTSpice_pzt_model dir to tracked paths
+* bec19b0 adding spice model to tracking
+* 7c632e8 updated to work with spice model
+| * b40e1c2 (origin/dependabot/pip/docs/sphinx-8.2.3) Bump sphinx from 5.3.0 to 8.2.3 in /docs
+| | * d121bb7 (origin/dependabot/pip/dot-github/workflows/nox-poetry-1.2.0) Bump nox-poetry from 1.0.3 to 1.2.0 in /.github/workflows
+| |/  
+| | * 5bc1a73 (origin/dependabot/pip/authlib-1.5.1) Bump authlib from 1.4.1 to 1.5.1
+| |/  
+| * 9299129 (origin/main, origin/HEAD) update readme format
+|/  
+* db53155 fix readme plot command
+* 297fcb4 updated readme run notes
+* ed6caa4 updated readme install notes
+* e933e47 updated readme
+* 9650030 updated readme
+* 7896b43 updated to add plotting for force vs displacement
+* 4fc2715 Adding load vs displacment plotting funciton
+* 887b6c4 Cleaned up source directory and added plotting
+* 6f08e33 remove tracked .swp files
+* 79aaa1b added plot file
+| * 77efeb0 (origin/dependabot/pip/sphinx-8.1.3) Bump sphinx from 5.3.0 to 8.1.3
+|/  
+| * e6c5aeb (origin/dependabot/pip/furo-2024.8.6) Bump furo from 2022.12.7 to 2024.8.6
+|/  
+* bd7c71b Added ref plotting file
+* 34b3ffc Added Dependencies numpy scipy matplotlib pandas
+| * 4fa8bef (origin/dependabot/pip/sphinx-argparse-0.5.2) Bump sphinx-argparse from 0.4.0 to 0.5.2
+| | * 969bd60 (origin/dependabot/pip/docs/sphinx-argparse-0.5.2) Bump sphinx-argparse from 0.4.0 to 0.5.2 in /docs
+| |/  
+|/|   
+| | * 0a19832 (origin/dependabot/pip/docs/furo-2024.8.6) Bump furo from 2022.12.7 to 2024.8.6 in /docs
+| |/  
+|/|   
+| | * ec3505e (origin/dependabot/pip/docs/sphinx-8.2.1) Bump sphinx from 5.3.0 to 8.2.1 in /docs
+| |/  
+|/|   
+| | * 03d85ea (origin/dependabot/pip/docs/myst-parser-4.0.1) Bump myst-parser from 0.18.1 to 4.0.1 in /docs
+| |/  
+|/|   
+| | * 1d30c2a (origin/dependabot/pip/myst-parser-4.0.1) Bump myst-parser from 0.18.1 to 4.0.1
+| |/  
+| | * 8ed3eaa (origin/dependabot/github_actions/crazy-max/ghaction-github-labeler-5.2.0) Bump crazy-max/ghaction-github-labeler from 4.1.0 to 5.2.0
+| |/  
+|/|   
+| | * a93ef3a (origin/dependabot/github_actions/actions/checkout-4) Bump actions/checkout from 3 to 4
+| |/  
+|/|   
+* | 960578f Add empty directories OUT and DATA with .gitkeep files
+|/  
+| * 7c6c32f (origin/dependabot/pip/dot-github/workflows/nox-poetry-1.1.0) Bump nox-poetry from 1.0.3 to 1.1.0 in /.github/workflows
+|/  
+| * 1c7e08b (origin/dependabot/pip/dot-github/workflows/poetry-2.1.1) Bump poetry from 1.8.3 to 2.1.1 in /.github/workflows
+|/  
+| * bd0dd49 (origin/dependabot/pip/dot-github/workflows/nox-2025.2.9) Bump nox from 2024.4.15 to 2025.2.9 in /.github/workflows
+|/  
+| * e1f287e (origin/dependabot/pip/dot-github/workflows/virtualenv-20.29.2) Bump virtualenv from 20.26.4 to 20.29.2 in /.github/workflows
+|/  
+| * 927d15b (origin/dependabot/pip/dot-github/workflows/pip-25.0.1) Bump pip from 24.2 to 25.0.1 in /.github/workflows
+|/  
+* 24ec238 Initial commit
